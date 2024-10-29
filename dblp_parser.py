@@ -8,18 +8,19 @@ import xml.sax
 import csv
 
 class DBLPHandler(xml.sax.ContentHandler):
-    def __init__(self):
+    def __init__(self, csv_writer):
         self.CurrentData = ""
-        self.current_element = None  # Initialize as None, will be a dict when processing a publication
-        self.publications = []
-        self.author = ""
-        self.editor = ""
+        self.current_element = None
+        self.csv_writer = csv_writer
+        self.authors = []
+        self.editors = []
+        self.ee_links = []
+        self.rel_entries = []
+        self.current_rel_entry = None  # Track the current rel entry
 
-    # Called when an element starts
     def startElement(self, tag, attributes):
         self.CurrentData = tag
         if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www"]:
-            # Initialize a new dictionary for the current publication with default values
             self.current_element = {
                 "type": tag,
                 "key": attributes.get("key", ""),
@@ -38,7 +39,7 @@ class DBLPHandler(xml.sax.ContentHandler):
                 "number": "",
                 "month": "",
                 "url": "",
-                "ee": "",
+                "ee": [],
                 "cdrom": "",
                 "cite": "",
                 "publisher": "",
@@ -50,108 +51,129 @@ class DBLPHandler(xml.sax.ContentHandler):
                 "chapter": "",
                 "publnr": "",
                 "stream": "",
-                "rel": ""
+                "rels": []  # Collect all rel entries
+            }
+            self.authors = []
+            self.editors = []
+            self.ee_links = []
+            self.rel_entries = []
+
+        elif tag == "rel":
+            # Initialize a new rel entry with its attributes
+            self.current_rel_entry = {
+                "type": attributes.get("type", ""),
+                "uri": attributes.get("uri", ""),
+                "label": attributes.get("label", ""),
+                "sort": attributes.get("sort", ""),
+                "content": ""  # Initialize content as an empty string
             }
 
-    # Called when an element ends
     def endElement(self, tag):
-        if self.CurrentData == "author":
-            if self.current_element and self.author:  # Ensure author is not None or empty
-                self.current_element["authors"].append(self.author)
-            self.author = ""  # Reset after adding
+        if self.current_element is None:
+            return
 
-        elif self.CurrentData == "editor":
-            if self.current_element and self.editor:  # Ensure editor is not None or empty
-                self.current_element["editors"].append(self.editor)
-            self.editor = ""  # Reset after adding
+        if tag == "author":
+            self.authors.append(self.CurrentData)
+        elif tag == "editor":
+            self.editors.append(self.CurrentData)
+        elif tag == "ee":
+            self.ee_links.append(self.CurrentData)
+        elif tag == "rel" and self.current_rel_entry:
+            # Finalize and append the rel entry content
+            rel_info = (
+                f"type: {self.current_rel_entry['type']}, "
+                f"uri: {self.current_rel_entry['uri']}, "
+                f"label: {self.current_rel_entry['label']}, "
+                f"sort: {self.current_rel_entry['sort']}, "
+                f"content: {self.current_rel_entry['content']}"
+            )
+            self.current_element["rels"].append(rel_info)
+            self.current_rel_entry = None  # Reset the current rel entry
 
-        elif self.CurrentData and self.current_element and self.CurrentData in self.current_element:
-            # Safely set the value to avoid None issues
-            self.current_element[self.CurrentData] = getattr(self, self.CurrentData, "").strip()
-
-        # Store the current publication when it ends
         if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www"]:
-            if self.current_element:
-                self.publications.append(self.current_element)
+            # Write each publication to CSV, including all rel entries
+            self.csv_writer.writerow({
+                'Publication Type': self.current_element.get('type', ''),
+                'Key': self.current_element.get('key', ''),
+                'Mdate': self.current_element.get('mdate', ''),
+                'Publtype': self.current_element.get('publtype', ''),
+                'Cdate': self.current_element.get('cdate', ''),
+                'Authors': ", ".join(self.authors),
+                'Editors': ", ".join(self.editors),
+                'Title': self.current_element.get('title', ''),
+                'Booktitle': self.current_element.get('booktitle', ''),
+                'Pages': self.current_element.get('pages', ''),
+                'Year': self.current_element.get('year', ''),
+                'Address': self.current_element.get('address', ''),
+                'Journal': self.current_element.get('journal', ''),
+                'Volume': self.current_element.get('volume', ''),
+                'Number': self.current_element.get('number', ''),
+                'Month': self.current_element.get('month', ''),
+                'URL': self.current_element.get('url', ''),
+                'EE': "; ".join(self.ee_links),
+                'CDROM': self.current_element.get('cdrom', ''),
+                'Cite': self.current_element.get('cite', ''),
+                'Publisher': self.current_element.get('publisher', ''),
+                'Note': self.current_element.get('note', ''),
+                'Crossref': self.current_element.get('crossref', ''),
+                'ISBN': self.current_element.get('isbn', ''),
+                'Series': self.current_element.get('series', ''),
+                'School': self.current_element.get('school', ''),
+                'Chapter': self.current_element.get('chapter', ''),
+                'Publnr': self.current_element.get('publnr', ''),
+                'Stream': self.current_element.get('stream', ''),
+                'Rel Entries': " | ".join(self.current_element["rels"])  # Store all rels in a single column, separated by " | "
+            })
             self.current_element = None
+            self.authors = []
+            self.editors = []
+            self.rel_entries = []
 
         self.CurrentData = ""
 
-    # Called when characters between elements are found
     def characters(self, content):
         content = content.strip()
-        if self.CurrentData == "author":
-            self.author = content
-        elif self.CurrentData == "editor":
-            self.editor = content
-        elif self.CurrentData and self.current_element and self.CurrentData in self.current_element:
-            setattr(self, self.CurrentData, content)
+        if not self.current_element:
+            return
 
-# Main function to parse the XML and export to CSV with additional metadata fields
+        if self.CurrentData == "author":
+            self.authors.append(content)
+        elif self.CurrentData == "editor":
+            self.editors.append(content)
+        elif self.CurrentData == "ee":
+            self.ee_links.append(content)
+        elif self.CurrentData == "rel" and self.current_rel_entry is not None:
+            # Append content to the current rel entry's content field
+            self.current_rel_entry["content"] += content
+        elif self.CurrentData in self.current_element:
+            self.current_element[self.CurrentData] += content
+
+# Main function to parse the XML and export to CSV
 def parse_dblp_xml_to_csv(xml_file, csv_file):
-    # Create a SAX parser
     parser = xml.sax.make_parser()
     parser.setFeature(xml.sax.handler.feature_namespaces, 0)
 
-    # Create the handler
-    handler = DBLPHandler()
-    parser.setContentHandler(handler)
-
-    # Open and parse the XML file
-    with open(xml_file, "r", encoding="utf-8") as file:
-        parser.parse(file)
-
-    # Write results to CSV
     with open(csv_file, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
             'Publication Type', 'Key', 'Mdate', 'Publtype', 'Cdate', 'Authors', 'Editors', 'Title', 'Booktitle', 
             'Pages', 'Year', 'Address', 'Journal', 'Volume', 'Number', 'Month', 'URL', 'EE', 'CDROM', 'Cite', 
-            'Publisher', 'Note', 'Crossref', 'ISBN', 'Series', 'School', 'Chapter', 'Publnr', 'Stream', 'Rel'
+            'Publisher', 'Note', 'Crossref', 'ISBN', 'Series', 'School', 'Chapter', 'Publnr', 'Stream', 
+            'Rel Entries'  # Column to capture all rel elements
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
         writer.writeheader()
 
-        # Write the publication details
-        for pub in handler.publications:
-            # Use the get() method and provide default values to avoid NoneType errors
-            writer.writerow({
-                'Publication Type': pub.get('type', ''),
-                'Key': pub.get('key', ''),
-                'Mdate': pub.get('mdate', ''),
-                'Publtype': pub.get('publtype', ''),
-                'Cdate': pub.get('cdate', ''),
-                'Authors': ", ".join(pub.get('authors', [])) if pub.get('authors') else '',  # Safe join for authors
-                'Editors': ", ".join(pub.get('editors', [])) if pub.get('editors') else '',  # Safe join for editors
-                'Title': pub.get('title', ''),
-                'Booktitle': pub.get('booktitle', ''),
-                'Pages': pub.get('pages', ''),
-                'Year': pub.get('year', ''),
-                'Address': pub.get('address', ''),
-                'Journal': pub.get('journal', ''),
-                'Volume': pub.get('volume', ''),
-                'Number': pub.get('number', ''),
-                'Month': pub.get('month', ''),
-                'URL': pub.get('url', ''),
-                'EE': pub.get('ee', ''),
-                'CDROM': pub.get('cdrom', ''),
-                'Cite': pub.get('cite', ''),
-                'Publisher': pub.get('publisher', ''),
-                'Note': pub.get('note', ''),
-                'Crossref': pub.get('crossref', ''),
-                'ISBN': pub.get('isbn', ''),
-                'Series': pub.get('series', ''),
-                'School': pub.get('school', ''),
-                'Chapter': pub.get('chapter', ''),
-                'Publnr': pub.get('publnr', ''),
-                'Stream': pub.get('stream', ''),
-                'Rel': pub.get('rel', '')
-            })
+        handler = DBLPHandler(writer)
+        parser.setContentHandler(handler)
 
-#Change path address
+        with open(xml_file, "r", encoding="utf-8") as file:
+            parser.parse(file)
+
+    print(f"Parsing complete. Data exported to {csv_file}")
+
 if __name__ == "__main__":
-    xml_file_path = r"C:\Users\renal\Downloads\dblp.xml"  # Replace with your actual file path
-    csv_file_path = r"C:\Users\renal\Downloads\dblp_parsed.csv"  # Output CSV file path
+    xml_file_path = r"C:\Users\renal\Downloads\dblp2-smaller.xml"  # Replace with your actual file path
+    csv_file_path = r"C:\Users\renal\Downloads\sample.csv"  # Output CSV file path
     parse_dblp_xml_to_csv(xml_file_path, csv_file_path)
 
     print(f"Parsing complete. Data exported to {csv_file_path}")
