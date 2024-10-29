@@ -1,0 +1,35 @@
+Available CSV Columns:
+
+These 3 column can be used as index as its non empty column
+Publication Type: The type of publication (e.g., article, inproceedings, etc.).
+Key: A unique key for the publication.
+Mdate: The modification date of the record.
+
+
+Publtype: The publication type.
+Cdate: The creation date of the record.
+Authors: A comma-separated list of authors.
+Editors: A comma-separated list of editors.
+Title: The title of the publication.
+Booktitle: The title of the book or conference proceedings, if applicable.
+Pages: The page range of the publication.
+Year: The year of the publication.
+Address: The address associated with the publication (optional, sometimes for conferences).
+Journal: The journal in which the publication appeared.
+Volume: The volume of the journal or book series.
+Number: The issue number of the journal.
+Month: The month of the publication.
+URL: A URL associated with the publication.
+EE: An electronic edition link.
+CDROM: A reference to a CD-ROM edition.
+Cite: Citation information.
+Publisher: The publisher of the publication.
+Note: Any additional notes.
+Crossref: A reference to a related publication.
+ISBN: The ISBN number of the publication.
+Series: The series name, if applicable.
+School: The school associated with the publication (typically for theses).
+Chapter: The chapter number, if applicable.
+Publnr: The publication number.
+Stream: A reference to a stream of publications.
+Rel: A relationship or reference to another work.
