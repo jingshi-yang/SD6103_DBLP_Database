@@ -20,7 +20,7 @@ class DBLPHandler(xml.sax.ContentHandler):
 
     def startElement(self, tag, attributes):
         self.CurrentData = tag
-        if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www"]:
+        if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www", "person", "data"]:
             self.current_element = {
                 "type": tag,
                 "key": attributes.get("key", ""),
@@ -90,7 +90,7 @@ class DBLPHandler(xml.sax.ContentHandler):
             self.current_element["rels"].append(rel_info)
             self.current_rel_entry = None  # Reset the current rel entry
 
-        if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www"]:
+        if tag in ["article", "inproceedings", "proceedings", "book", "incollection", "phdthesis", "mastersthesis", "www", "person", "data"]:
             # Write each publication to CSV, including all rel entries
             self.csv_writer.writerow({
                 'Publication Type': self.current_element.get('type', ''),
@@ -172,11 +172,12 @@ def parse_dblp_xml_to_csv(xml_file, csv_file):
     print(f"Parsing complete. Data exported to {csv_file}")
 
 if __name__ == "__main__":
-    xml_file_path = r"C:\Users\renal\Downloads\dblp2-smaller.xml"  # Replace with your actual file path
-    csv_file_path = r"C:\Users\renal\Downloads\sample.csv"  # Output CSV file path
+    xml_file_path = r"C:\Users\renal\Downloads\dblp.xml"  # Replace with your actual file path
+    csv_file_path = r"C:\Users\renal\Downloads\dblp.csv"  # Output CSV file path
     parse_dblp_xml_to_csv(xml_file_path, csv_file_path)
 
     print(f"Parsing complete. Data exported to {csv_file_path}")
+
 
 
 # In[18]:
