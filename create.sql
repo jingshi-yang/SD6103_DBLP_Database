@@ -42,8 +42,8 @@ CREATE TABLE PapersEditors (
     FOREIGN KEY (PaperID) REFERENCES Papers(PaperID)
 );
 
--- Publication
-CREATE TABLE Publications (
+-- Article
+CREATE TABLE Articles (
     PublicationID INT PRIMARY KEY AUTO_INCREMENT,
     Title VARCHAR(1024) NOT NULL,
     Key VARCHAR(50) NOT NULL,
@@ -70,8 +70,56 @@ CREATE TABLE Publications (
     Rel VARCHAR(50),
     Note VARCHAR(255),
     Stream VARCHAR(255),
-    Type ENUM('Article', 'InProceedings', 'Book', 'InCollection', 'PhDThesis', 'MasterThesis', 'www') NOT NULL
 );
+
+-- InProceedings
+CREATE TABLE InProceedings (
+    InProceedingsID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- Book
+CREATE TABLE Books (
+    BooksID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- InCollection
+CREATE TABLE InCollections (
+    InCollectionsID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- PhDThesis
+CREATE TABLE PhDThesis (
+    PhDThesisID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- MasterThesis
+CREATE TABLE MasterThesis (
+    MasterThesisID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- www
+CREATE TABLE www (
+    wwwID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
+
+-- Data
+CREATE TABLE Data (
+    DataID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(1024) NOT NULL,
+    Key VARCHAR(50) NOT NULL
+)
 
 -- CrossRef
 CREATE TABLE CrossRefs (
