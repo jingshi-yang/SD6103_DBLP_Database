@@ -47,8 +47,8 @@ CREATE TABLE Publications (
     PublicationID INT PRIMARY KEY AUTO_INCREMENT,
     Title VARCHAR(1024) NOT NULL,
     Key VARCHAR(50) NOT NULL,
-    Year INT NOT NULL,
-    Month VARCHAR(50),
+    Year INT,
+    CDate VARCHAR(50),
     MDate VARCHAR(50),
     Volume VARCHAR(50),
     Number VARCHAR(50),
@@ -59,7 +59,17 @@ CREATE TABLE Publications (
     EE VARCHAR(255),
     School VARCHAR(50),
     CiteKey VARCHAR(100),
-    VenueID INT NULL, -- To be added
+    Address VARCHAR(255),
+    Series VARCHAR(50),
+    Journal VARCHAR(50),
+    CDROM VARCHAR(50),
+    Cite VARCHAR(255),
+    Publisher INT,
+    Chapter VARCHAR(50),
+    Publnr VARCHAR(50),
+    Rel VARCHAR(50),
+    Note VARCHAR(255),
+    Stream VARCHAR(255),
     Type ENUM('Article', 'InProceedings', 'Book', 'Proceedings', 'InCollection', 'PhDThesis', 'MasterThesis', 'www') NOT NULL
 )
 
@@ -69,4 +79,4 @@ CREATE TABLE CrossRefs (
     InProceedings ID INT,
     FOREIGN KEY (ProceedingsID),
     FOREIGN KEY (InProceedings)
-)
+)   
