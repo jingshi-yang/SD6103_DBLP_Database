@@ -38,7 +38,7 @@ CREATE TABLE PapersEditors (
     EditorID INT,
     PaperID INT,
     PRIMARY KEY (EditorID, PaperID),
-    FOREIGN KEY (EditorID) REFERENCES Editors(EditorID)
+    FOREIGN KEY (EditorID) REFERENCES Editors(EditorID),
     FOREIGN KEY (PaperID) REFERENCES Papers(PaperID)
 );
 
@@ -70,13 +70,26 @@ CREATE TABLE Publications (
     Rel VARCHAR(50),
     Note VARCHAR(255),
     Stream VARCHAR(255),
-    Type ENUM('Article', 'InProceedings', 'Book', 'Proceedings', 'InCollection', 'PhDThesis', 'MasterThesis', 'www') NOT NULL
-)
+    Type ENUM('Article', 'InProceedings', 'Book', 'InCollection', 'PhDThesis', 'MasterThesis', 'www') NOT NULL
+);
 
 -- CrossRef
 CREATE TABLE CrossRefs (
     ProceedingsID INT,
-    InProceedings ID INT,
+    PublicationsID INT,
     FOREIGN KEY (ProceedingsID),
-    FOREIGN KEY (InProceedings)
-)   
+    FOREIGN KEY (PublicationID)
+);
+
+-- Proceedings
+CREATE TABLE Proceedings (
+    ProceedingsID INT PRIMARY KEY AUTO_INCREMENT,
+    Key VARCHAR(255) NOT NULL UNIQUE,
+    Name VARCHAR(255) NOT NULL,
+    Year INT NOT NULL,
+    PublisherID INT,
+    Location VARCHAR(255),
+    URL VARCHAR(255)
+);
+
+
